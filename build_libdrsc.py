@@ -65,7 +65,7 @@ ffibuilder = cffi.FFI()
 CPLUSPLUS_DEF_REMOVER = re.compile("#ifdef __cplusplus\n.*?\n#endif")
 DEFINE_REMOVER = re.compile("#.*\n")
 
-with open('drsc.h') as f:
+with open('dirichlet_rescale.h') as f:
     # read plugin.h and pass it to embedding_api(), manually
     # removing the '#' directives and the CFFI_DLLEXPORT
     data = f.read()
@@ -75,55 +75,34 @@ with open('drsc.h') as f:
     ffibuilder.embedding_api(data)
 
 ffibuilder.set_source("libdrsc", """
-    #include "drsc.h"
+    #include "dirichlet_rescale.h"
 """)
 
-drsc_code = """
-import numpy as np
-import random
-
-from drs import drs_module
-from drs import drs as drs_py
-
+drsc_code = open('drs/drs.py').read()
+drsc_code += """
 from libdrsc import ffi
 
 @ffi.def_extern()
-def set_epsilon(epsilon):
-    global EPSILON
-    EPSILON = drs_module.epsilon
+def drs_set_epsilon(epsilon):
+    EPSILON = epsilon
 
 @ffi.def_extern()
-def set_seed(seed):
+def drs_set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
 
 @ffi.def_extern()
-def drs(n, U, out):
-    drs_output = drs_py(n, U)
+def dirichlet_rescale(n, total, lower_c, upper_c, out):
+    lower_py = [lower_c[x] for x in range(n)] if lower_c != ffi.NULL else None
+    upper_py = [upper_c[x] for x in range(n)] if upper_c != ffi.NULL else None
+    try:
+        drs_output = drs(n, total, upper_py, lower_py)
+    except Exception as err:
+        print(err)
+        return 1
     for index, val in enumerate(drs_output):
         out[index] = val
-
-@ffi.def_extern()
-def drs_ub(n, U, upper_constraints, out):
-    upper_constraints = [upper_constraints[x] for x in range(n)]
-    drs_output = drs_py(n, U, upper_constraints)
-    for index, val in enumerate(drs_output):
-        out[index] = val
-
-@ffi.def_extern()
-def drs_lb(n, U, lower_constraints, out):
-    lower_constraints = [lower_constraints[x] for x in range(n)]
-    drs_output = drs_py(n, U, lower_constraints=lower_constraints)
-    for index, val in enumerate(drs_output):
-        out[index] = val
-
-@ffi.def_extern()
-def drs_ub_lb(n, U, upper_constraints, lower_constraints, out):
-    upper_constraints = [upper_constraints[x] for x in range(n)]
-    lower_constraints = [lower_constraints[x] for x in range(n)]
-    drs_output = drs_py(n, U, upper_constraints, lower_constraints)
-    for index, val in enumerate(drs_output):
-        out[index] = val
+    return 0
 """
 
 ffibuilder.embedding_init_code(drsc_code)

@@ -26,24 +26,18 @@ Header file to use when calling DRS from C. Modified from the CFFI documentation
 #endif
 
 // set_epsilon: sets the epsilon parameter of DRS
-CFFI_DLLEXPORT void set_epsilon(float epsilon);
+CFFI_DLLEXPORT void drs_set_epsilon(float epsilon);
 // set_seed: sets the seed used in DRS
-CFFI_DLLEXPORT void set_seed(int n);
+CFFI_DLLEXPORT void drs_set_seed(int n);
 // drs function parameters
-// parameter: n - number of values to return
-// parameter: U - sum of values to return
-// parameter: upper_bounds - length n array of upper_bounds
-// parameter: lower_bounds - length n array of lower_bounds
+// parameter: n - number of entries in the vector
+// parameter: sum - sum of values to return
+// parameter: lower_bounds - length n array of lower bounds. 0 (null pointer) to run without lower bounds
+// parameter: upper_bounds - length n array of upper bounds. 0 (null pointer) to run without upper bounds
 // parameter: out - length n array to store output in
-// drs: runs drs without upper or lower bounds
-CFFI_DLLEXPORT void drs(int n, float U, float* out);
-// drs_ub: runs drs with upper bounds
-CFFI_DLLEXPORT void drs_ub(int n, float U, float* upper_bounds, float* out);
-// drs_lb: runs drs with lower bounds
-CFFI_DLLEXPORT void drs_lb(int n, float U, float* lower_bounds, float* out);
-// drs_ub_lb: runs drs with upper and lower bounds
-CFFI_DLLEXPORT void drs_ub_lb(int n, float U, float* upper_bounds,
-                              float* lower_bounds, float* out);
+// returns: 0 in case of success, non-zero in case of error
+CFFI_DLLEXPORT int dirichlet_rescale(
+  int n, float sum, float *lower_bounds, float *upper_bounds, float *out);
 
 #ifdef __cplusplus
   }
