@@ -28,7 +28,7 @@ Header file to use when calling DRS from C. Modified from the CFFI documentation
 // set_epsilon: sets the epsilon parameter of DRS
 CFFI_DLLEXPORT void drs_set_epsilon(float epsilon);
 // set_seed: sets the seed used in DRS
-CFFI_DLLEXPORT void drs_set_seed(int n);
+CFFI_DLLEXPORT void drs_set_seed(unsigned int n);
 // drs function parameters
 // parameter: n - number of entries in the vector
 // parameter: sum - sum of values to return
